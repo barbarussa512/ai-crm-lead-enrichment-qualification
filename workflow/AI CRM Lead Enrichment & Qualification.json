@@ -1,0 +1,451 @@
+{
+  "name": "AI CRM Lead Enrichment & Qualification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "incoming-crm-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "67854dff-51d5-425f-969f-9e39fa71b7eb",
+      "name": "🌐 Receive CRM Lead",
+      "webhookId": "959ef591-25c3-46fb-938f-cdb2bb70a49e"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        96,
+        208
+      ],
+      "id": "6ac40d47-e2be-451d-815b-f40d11570e5c",
+      "name": "LLM"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer (your-key)"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "{{ $json.company }} company overview industry employees"
+            },
+            {
+              "name": "search_depth",
+              "value": "basic"
+            },
+            {
+              "name": "max_results",
+              "value": "={{ 5 }}"
+            },
+            {
+              "name": "include_answer",
+              "value": "={{ true }}"
+            },
+            {
+              "name": "include_images",
+              "value": "={{ false }}"
+            },
+            {
+              "name": "include_raw_content",
+              "value": "={{ false }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        304,
+        256
+      ],
+      "id": "ef9f7f40-8f0f-47b9-bb6a-0f2caf4b0c7a",
+      "name": "🔍 Research Company"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "798e206a-ec47-4a38-8f3e-f2ca730aa006",
+              "leftValue": "={{ $json['Lead Score'] }}",
+              "rightValue": 69,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        752,
+        0
+      ],
+      "id": "d429c5d2-2656-45fc-a5ab-0b6e451b71e0",
+      "name": "🎯 Qualified Lead?"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -96
+      ],
+      "id": "1b70e2fb-dfb1-47b2-b8ae-7e0c53fff0e9",
+      "name": "📊 Update CRM"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1smAZPH-214rDToxym8jLR92pL1DHpRj1XAUWDWCdQog",
+          "mode": "list",
+          "cachedResultName": "📊 Update CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1smAZPH-214rDToxym8jLR92pL1DHpRj1XAUWDWCdQog/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 512319323,
+          "mode": "list",
+          "cachedResultName": "Low Priority Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1smAZPH-214rDToxym8jLR92pL1DHpRj1XAUWDWCdQog/edit#gid=512319323"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Code in JavaScript').item.json.Name }}",
+            "Email": "={{ $('Code in JavaScript').item.json.Email }}",
+            "Company": "={{ $('Code in JavaScript').item.json.Company }}",
+            "Job Title": "={{ $('Code in JavaScript').item.json['Job Title'] }}",
+            "Industry": "={{ $('Code in JavaScript').item.json.Industry }}",
+            "Company Size": "={{ $('Code in JavaScript').item.json['Company Size'] }}",
+            "Lead Score": "={{ $('Code in JavaScript').item.json['Lead Score'] }}",
+            "Priority": "={{ $('Code in JavaScript').item.json.Priority }}",
+            "Department": "={{ $('Code in JavaScript').item.json.Department }}",
+            "Summary": "={{ $('Code in JavaScript').item.json.Summary }}",
+            "Reason": "={{ $('Code in JavaScript').item.json.Reason }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Industry",
+              "displayName": "Industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company Size",
+              "displayName": "Company Size",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Department",
+              "displayName": "Department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        112
+      ],
+      "id": "d6242e85-a117-4412-9122-ec9b9ccf4453",
+      "name": "📊 Archive Low Priority Lead",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "W8CNzPSfLDYCpr9A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "sales@example.com",
+        "subject": "=New Qualified Lead - {{ $json.Company }}",
+        "message": "=A new qualified lead has been identified.  ━━━━━━━━━━━━━━━━━━━━━━  👤 Name:{{ $json.Name }}\nemail:{{ $json.Email }}\n🏢 Company: {{ $json.Company }}\n💼 Job Title: {{ $json['Job Title'] }}\n🏭 Industry: {{ $json.Industry }}\n📊 Company Size:{{ $json['Company Size'] }} \nLead Score:{{ $json['Lead Score'] }} \nPriority:{{ $json.Priority }}\n━━━━━━━━━━━━━━━━━━━━━━  \nSummary:{{ $json.Summary }}\n━━━━━━━━━━━━━━━━━━━━━━  \nReason for Qualification:{{ $json.Reason }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        -96
+      ],
+      "id": "06ea7cc1-5ab9-4c35-9f53-276329174d22",
+      "name": "📧 Notify Sales Team",
+      "webhookId": "e4c7ac68-7964-4576-aff0-ad10ab08795e"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Lead Information\n\nName: {{ $json.body.name }}\n\nEmail: {{ $json.body.email }}\n\nCompany: {{ $json.body.company }}\n\nJob Title: {{ $json.body.job_title }}\n\nMessage:\n{{ $json.body.message }}",
+        "options": {
+          "systemMessage": "=You are an AI Sales Qualification Assistant.\n\nYour task is to analyze the provided lead information and return ONLY a valid JSON object.\n\nNever invent information.\n\nIf information is unavailable, return \"Unknown\".\n\nEvaluate the lead using the provided company information, research results, and lead message.\n\nLead Score should be an integer from 0 to 100.\n\nPriority should be one of:\n- High\n- Medium\n- Low\n\nDepartment should be one of:\n- Sales\n- Marketing\n- Operations\n- IT\n- HR\n- Finance\n- Executive\n- Unknown\n\nDetermine the company industry whenever possible.\n\nEstimate company size using one of:\n\n- 1-10\n- 11-50\n- 51-200\n- 201-500\n- 501-1000\n- 1000+\n- Unknown\n\nCreate a concise summary (maximum 2 sentences).\n\nReason should briefly explain why the lead received its score.\n\nLead Score Guidelines\n\n90-100\nExcellent fit with strong buying intent.\n\n70-89\nGood fit with clear automation opportunities.\n\n50-69\nPossible fit but requires follow-up.\n\n30-49\nWeak fit.\n\n0-29\nPoor fit.\n\nReturn ONLY this JSON.\n\n{\n  \"Name\": \"\",\n  \"Email\": \"\",\n  \"Company\": \"\",\n  \"Job Title\": \"\",\n  \"Industry\": \"\",\n  \"Company Size\": \"\",\n  \"Lead Score\": 0,\n  \"Priority\": \"\",\n  \"Department\": \"\",\n  \"Summary\": \"\",\n  \"Reason\": \"\"\n}\n\nRules:\n\n- Return valid JSON only.\n- Do not wrap the JSON in markdown.\n- Do not use code fences.\n- Do not explain your reasoning.\n- Do not include extra fields.\n- Do not omit fields.\n- Never return null.\n- Use \"Unknown\" when information is unavailable."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "82940d70-f246-4349-96ee-dec5c92d3bc7",
+      "name": "Enrich Lead"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.output;\n\nreturn [\n  {\n    json: JSON.parse(text)\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "84287376-ce19-4906-9d45-6408966cf04d",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "🌐 Receive CRM Lead": {
+      "main": [
+        [
+          {
+            "node": "Enrich Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Enrich Lead",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Research Company": {
+      "ai_tool": [
+        [
+          {
+            "node": "Enrich Lead",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Qualified Lead?": {
+      "main": [
+        [
+          {
+            "node": "📊 Update CRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "📊 Archive Low Priority Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Update CRM": {
+      "main": [
+        [
+          {
+            "node": "📧 Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Lead": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "🎯 Qualified Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "95d9554c-5afb-4d97-ae7b-e6fcfb97ddbd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ffda4d709c6efe6b3076b52147f2a246789918236007d28138159b2228135293"
+  },
+  "nodeGroups": [],
+  "id": "ZnlxGgH9Xab6fXWU",
+  "tags": []
+}
