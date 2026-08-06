@@ -1,7 +1,6 @@
 <p align="center">
 
 ![n8n](https://img.shields.io/badge/n8n-Automation-orange)
-![OpenRouter](https://img.shields.io/badge/OpenRouter-GPT--5_Mini-blue)
 ![Tavily](https://img.shields.io/badge/Tavily-Search-green)
 ![Status](https://img.shields.io/badge/Status-Completed-brightgreen)
 
